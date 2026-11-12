@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Smart DNS LB · 调度控制台</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/assets/app.css" />
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview" aria-label="Smart DNS LB 总览">
+          <span class="brand-mark">D</span>
+          <span>Smart DNS LB<small>线路调度控制台</small></span>
+        </a>
+        <nav class="navigation" aria-label="主导航">
+          <button
+            data-page="overview"
+            class="nav-item active"
+            aria-current="page"
+          >
+            <span>01</span>总览
+          </button>
+          <button data-page="nodes" class="nav-item">
+            <span>02</span>节点
+          </button>
+          <button data-page="settings" class="nav-item">
+            <span>03</span>设置
+          </button>
+          <button data-page="events" class="nav-item">
+            <span>04</span>事件
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <span class="eyebrow">AUTHORITATIVE DNS</span>
+          <p>一次配置入口<br />持续检查线路健康</p>
+          <button data-action="logout" class="button quiet">退出登录</button>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <span class="breadcrumb"
+            >控制台 <span aria-hidden="true">/</span>
+            <strong id="breadcrumb">总览</strong></span
+          >
+          <div class="topbar-actions">
+            <span
+              id="requestStatus"
+              class="request-status"
+              role="status"
+              aria-live="polite"
+              >等待登录</span
+            >
+            <button
+              id="themeButton"
+              data-action="theme"
+              class="button quiet"
+              title="切换自动、浅色、深色主题"
+            >
+              主题：自动
+            </button>
+            <button data-action="logout" class="button quiet mobile-logout">
+              退出
+            </button>
+          </div>
+        </header>
+
+        <main id="main" tabindex="-1">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">SMART DNS / OPERATIONS</p>
+              <h1 id="pageTitle">运行总览</h1>
+              <p id="pageSubtitle" class="muted">
+                查看服务状态，确认每一次新解析的去向。
+              </p>
+            </div>
+            <div class="button-row">
+              <button data-action="refresh" class="button">刷新</button
+              ><button data-action="import-links" class="button primary">
+                导入节点
+              </button>
+            </div>
+          </div>
+
+          <section id="page-overview" class="page-panel" aria-label="运行总览">
+            <div id="setupBanner" class="setup-banner" hidden>
+              <div>
+                <strong>先完成基础配置</strong>
+                <p id="setupSummary">跟随向导设置服务域名、节点和 DNS 委派。</p>
+              </div>
+              <button data-action="setup" class="button primary">
+                打开配置向导
+              </button>
+            </div>
+            <div class="metric-grid">
+              <article class="metric">
+                <p>DNS 服务</p>
+                <div id="dnsStatus" class="metric-value">—</div>
+                <small id="dnsMeta">等待连接</small>
+              </article>
+              <article class="metric">
+                <p>当前调度</p>
+                <div id="modeName" class="metric-value compact">—</div>
+                <small id="modeSummary">等待读取调度策略</small>
+              </article>
+              <article class="metric">
+                <p>健康节点</p>
+                <div id="healthCount" class="metric-value">—</div>
+                <small id="healthMeta">健康检测正在等待配置</small>
+              </article>
+              <article class="metric">
+                <p>本周期剩余流量</p>
+                <div id="trafficRemaining" class="metric-value">—</div>
+                <small id="trafficMeta">连接探针后显示额度</small>
+              </article>
+            </div>
+            <div class="overview-grid">
+              <section class="panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>线路概况</h2>
+                    <p class="muted">延迟与新 DNS 查询分配概率</p>
+                  </div>
+                  <button data-page="nodes" class="button quiet">
+                    全部节点
+                  </button>
+                </div>
+                <div id="overviewNodes"></div>
+              </section>
+              <section class="panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>运行信息</h2>
+                    <p class="muted">当前服务与探测执行情况</p>
+                  </div>
+                </div>
+                <dl id="runtimeInfo" class="detail-list"></dl>
+                <p class="note">
+                  DNS 调整影响新解析。已有缓存与长连接会按各自生命周期更新。
+                </p>
+              </section>
+            </div>
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <h2>最近事件</h2>
+                  <p class="muted">配置变更与线路健康记录</p>
+                </div>
+                <button data-page="events" class="button quiet">
+                  查看全部
+                </button>
+              </div>
+              <div id="recentEvents"></div>
+            </section>
+          </section>
+
+          <section
+            id="page-nodes"
+            class="page-panel"
+            aria-label="节点管理"
+            hidden
+          >
+            <div class="toolbar">
+              <label class="search-label"
+                >搜索节点<input
+                  id="nodeSearch"
+                  type="search"
+                  placeholder="名称或入口 IP"
+                  autocomplete="off" /></label
+              ><label
+                >健康状态<select id="nodeFilter">
+                  <option value="">全部状态</option>
+                  <option>UP</option>
+                  <option>DEGRADED</option>
+                  <option>DOWN</option>
+                  <option>UNKNOWN</option>
+                </select></label
+              ><button data-action="manual-node" class="button">
+                手动添加
+              </button>
+            </div>
+            <p id="nodeCount" class="muted"></p>
+            <div id="nodeGrid" class="node-grid"></div>
+          </section>
+
+          <section
+            id="page-settings"
+            class="page-panel"
+            aria-label="服务设置"
+            hidden
+          >
+            <div class="settings-layout">
+              <nav
+                id="settingsTabs"
+                class="settings-tabs"
+                aria-label="设置分组"
+              ></nav>
+              <div>
+                <form id="settingsForm" class="panel" novalidate>
+                  <div id="settingsFields"></div>
+                  <p id="settingsError" class="form-error" role="alert"></p>
+                  <div class="form-footer">
+                    <span id="settingsDirty" class="muted">配置已同步</span
+                    ><button type="submit" class="button primary">
+                      保存设置
+                    </button>
+                  </div>
+                </form>
+                <section class="panel backup-panel">
+                  <h2>配置备份</h2>
+                  <p class="muted">
+                    默认导出会隐藏 UUID
+                    和探针令牌。完整备份包含凭据，请妥善保存。
+                  </p>
+                  <label class="checkbox"
+                    ><input
+                      id="exportSecrets"
+                      type="checkbox"
+                    />导出时包含密钥</label
+                  >
+                  <div class="button-row">
+                    <button data-action="export" class="button">
+                      导出 JSON</button
+                    ><button data-action="import-config" class="button">
+                      导入备份
+                    </button>
+                  </div>
+                  <input
+                    id="configFile"
+                    type="file"
+                    accept="application/json,.json"
+                    hidden
+                  />
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="page-events"
+            class="page-panel panel"
+            aria-label="事件日志"
+            hidden
+          >
+            <div class="section-heading">
+              <div>
+                <h2>事件日志</h2>
+                <p class="muted">最近 100 条事件，按时间倒序</p>
+              </div>
+              <button data-action="events-refresh" class="button">
+                刷新日志
+              </button>
+            </div>
+            <div id="eventList"></div>
+          </section>
+        </main>
+        <footer class="page-footer">
+          <span>Smart DNS LB</span><span id="lastUpdated">尚未同步</span>
+        </footer>
+      </div>
+    </div>
+
+    <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
+      <form id="loginForm">
+        <div class="dialog-heading">
+          <p class="eyebrow">SMART DNS LB</p>
+          <h2 id="loginTitle">登录控制台</h2>
+          <p class="muted">输入服务器数据目录中 admin.token 的管理令牌。</p>
+        </div>
+        <div class="dialog-body">
+          <label
+            >管理令牌<input
+              name="token"
+              type="password"
+              required
+              autocomplete="current-password"
+              autofocus /></label
+          ><label class="checkbox"
+            ><input
+              name="remember_token"
+              type="checkbox"
+            />在此浏览器记住</label
+          >
+          <p class="note">
+            默认仅保存在当前页面。勾选后写入此浏览器，退出登录时清除。
+          </p>
+          <p id="loginError" class="form-error" role="alert"></p>
+        </div>
+        <div class="dialog-footer">
+          <button type="submit" class="button primary">登录</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="wizardDialog" class="wide-dialog" aria-labelledby="wizardTitle">
+      <div class="dialog-heading">
+        <p class="eyebrow">首次配置</p>
+        <h2 id="wizardTitle">让你的第一个服务域名开始工作</h2>
+        <p class="muted">
+          准备一个自己的域名和至少一条 VLESS
+          分享链接。每一步都会保存，稍后可继续。
+        </p>
+      </div>
+      <ol id="wizardSteps" class="wizard-steps"></ol>
+      <form id="wizardForm" novalidate>
+        <div id="wizardContent" class="dialog-body wizard-content"></div>
+        <p id="wizardError" class="form-error dialog-error" role="alert"></p>
+        <div class="dialog-footer">
+          <button type="button" data-action="wizard-close" class="button quiet">
+            稍后配置</button
+          ><span class="spacer"></span
+          ><button
+            type="button"
+            id="wizardBack"
+            data-action="wizard-back"
+            class="button"
+          >
+            上一步</button
+          ><button type="submit" id="wizardNext" class="button primary">
+            保存并继续
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="nodeDialog" class="wide-dialog" aria-labelledby="nodeTitle">
+      <div class="dialog-heading">
+        <div class="section-heading">
+          <h2 id="nodeTitle">添加节点</h2>
+          <button
+            data-close="nodeDialog"
+            class="button quiet"
+            aria-label="关闭节点窗口"
+          >
+            关闭
+          </button>
+        </div>
+        <p class="muted">
+          直接粘贴 3x-ui / v2rayN 导出的 VLESS 链接，一行一条。
+        </p>
+      </div>
+      <div id="linkImport" class="dialog-body">
+        <label
+          >VLESS 分享链接<textarea
+            id="linkText"
+            rows="5"
+            placeholder="vless://…&#10;vless://…"
+            spellcheck="false"
+          ></textarea>
+        </label>
+        <div class="button-row">
+          <button data-action="parse-links" class="button">解析链接</button>
+        </div>
+        <div id="linkPreview" aria-live="polite"></div>
+        <p id="linkError" class="form-error" role="alert"></p>
+        <button
+          id="saveImported"
+          data-action="save-imported"
+          class="button primary"
+          hidden
+        >
+          确认导入
+        </button>
+      </div>
+      <details id="manualDetails" class="manual-details">
+        <summary>手动填写连接参数</summary>
+        <form id="nodeForm" novalidate>
+          <div id="nodeFields" class="dialog-body form-grid"></div>
+          <p id="nodeError" class="form-error dialog-error" role="alert"></p>
+          <div class="dialog-footer">
+            <button type="submit" class="button primary">保存节点</button>
+          </div>
+        </form>
+      </details>
+    </dialog>
+
+    <dialog
+      id="confirmDialog"
+      class="confirm-dialog"
+      aria-labelledby="confirmTitle"
+    >
+      <div class="dialog-heading"><h2 id="confirmTitle">确认操作</h2></div>
+      <p id="confirmMessage" class="dialog-body preserve-lines"></p>
+      <div class="dialog-footer">
+        <button id="confirmCancel" class="button">取消</button
+        ><button id="confirmAccept" class="button primary">确认继续</button>
+      </div>
+    </dialog>
+    <div
+      id="toastRegion"
+      class="toast-region"
+      role="status"
+      aria-live="polite"
+    ></div>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+services:
+  smart-dns-lb:
+    build:
+      context: .
+      args:
+        INSTALL_MIHOMO: ${INSTALL_MIHOMO:-1}
+        MIHOMO_VERSION: ${MIHOMO_VERSION:-latest}
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      SMART_DNS_DATA_DIR: /var/lib/smart-dns-lb
+    volumes:
+      - smart-dns-data:/var/lib/smart-dns-lb
+    # 也可只读挂载匹配容器架构的内核：
+    #   - /usr/local/bin/mihomo:/usr/local/bin/mihomo:ro
+volumes:
+  smart-dns-data:

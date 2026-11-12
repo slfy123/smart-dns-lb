@@ -1,0 +1,25 @@
+[Unit]
+Description=Smart DNS LB authoritative DNS and VLESS route scheduler
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=smartdns
+Group=smartdns
+WorkingDirectory=/opt/smart-dns-lb
+Environment=SMART_DNS_DATA_DIR=/var/lib/smart-dns-lb
+ExecStart=/opt/smart-dns-lb/.venv/bin/python /opt/smart-dns-lb/app.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/smart-dns-lb
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+.git
+.venv
+__pycache__
+**/__pycache__
+*.pyc
+private
+data
+.test-data
+*.sqlite3*
+admin.token
+*.log

@@ -1,0 +1,11 @@
+name: 问题反馈
+description: 反馈可复现的问题
+body:
+  - type: textarea
+    id: steps
+    attributes: {label: 复现步骤, description: 请提供已去除 IP、UUID 和令牌的日志}
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes: {label: 预期行为与实际行为}
+    validations: {required: true}

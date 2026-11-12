@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "zone": "lb.example.com.",
+    "service_name": "node.lb.example.com.",
+    "ns_name": "ns1.lb.example.com.",
+    "soa_mname": "ns1.lb.example.com.",
+    "soa_rname": "hostmaster.lb.example.com.",
+    "ns_ipv4": "203.0.113.10",
+    "dns_host": "0.0.0.0",
+    "dns_port": 53,
+    "api_host": "127.0.0.1",
+    "api_port": 8080,
+    "ttl": 30,
+    "mode": "TRAFFIC_AWARE",
+    "all_down_policy": "SERVFAIL",
+    "probe_interval_seconds": 5,
+    "max_rtt_ms": 1500,
+    "recovery_rtt_percent": 80,
+    "mihomo_path": "/usr/local/bin/mihomo",
+    "probe_source": {
+      "base_url": "https://monitor.example.com",
+      "bearer_token": "",
+      "poll_interval_seconds": 45,
+      "max_age_seconds": 240,
+      "request_timeout_seconds": 8
+    }
+  },
+  "nodes": [
+    {
+      "id": "relay-1",
+      "name": "线路机 1",
+      "server": "203.0.113.21",
+      "port": 20086,
+      "transport": "tcp",
+      "uuid": "00000000-0000-4000-8000-000000000001",
+      "tls_sni": "origin.example.com",
+      "category": "NORMAL",
+      "base_weight": 100,
+      "priority": 1,
+      "capacity_mbps": 100,
+      "probe_server_id": "",
+      "probe_server_name": ""
+    }
+  ]
+}
